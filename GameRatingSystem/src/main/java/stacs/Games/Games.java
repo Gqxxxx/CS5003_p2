@@ -9,7 +9,6 @@ public class Games {
     private ArrayList<String> genres;
     private LocalDate releaseDate;
     private String platform;
-    private ArrayList<Integer> rating;
 
     public Games(int identifier, String title, ArrayList<String> genres, LocalDate releaseDate, String platform) {
         this.identifier = identifier;
