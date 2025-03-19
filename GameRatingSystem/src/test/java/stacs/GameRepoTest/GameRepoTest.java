@@ -3,17 +3,17 @@ package stacs.GameRepoTest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import stacs.GameRepo.GameRepo;
 import stacs.Games.Games;
 import stacs.Users.Users;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class GameRepoTest {
     private GameRepo gameRepo;
@@ -220,6 +220,96 @@ public class GameRepoTest {
         ArrayList<Users> listOfUsers = gameRepo.getUsers();
         assertEquals(0, listOfUsers.size());
         assertEquals("A User object is required", exception.getMessage());
+    }
+
+    // 1. Test: Finding an existing user by ID
+    @Test
+    public void testFindUserByIdExists() {
+        gameRepo.addUser(user1); // Ensure user1 is added
+        Users foundUser = gameRepo.findUserById(1);
+        assertNotNull(foundUser, "Should find user with ID 1");
+        assertEquals("John Doe", foundUser.getName(), "User name should be John Doe");
+    }
+
+    // 2. Test: Finding a non-existing user by ID
+    @Test
+    public void testFindUserByIdNotFound() {
+        gameRepo.addUser(user1);
+        gameRepo.addUser(user2);
+        Users foundUser = gameRepo.findUserById(999); // Non-existing user ID
+        assertNull(foundUser, "Should return null for non-existing user ID");
+    }
+
+    // 3. Test: Updating a user's name
+    @Test
+    public void testUpdateUserName() {
+        gameRepo.addUser(user1);
+        gameRepo.updateUserName(1, "John Smith");
+        Users updatedUser = gameRepo.findUserById(1);
+        assertNotNull(updatedUser, "User should exist after update");
+        assertEquals("John Smith", updatedUser.getName(), "User name should be updated to John Smith");
+    }
+
+    // 4. Test: Finding an existing game by ID
+    @Test
+    public void testFindGameByIdExists() {
+        gameRepo.addGame(game2);
+        Games foundGame = gameRepo.findGameById(2);
+        assertNotNull(foundGame, "Should find game with ID 2");
+        assertEquals("Subway Surfers", foundGame.getTitle(), "Game title should be Subway Surfers");
+    }
+
+    // 5. Test: Finding a non-existing game by ID
+    @Test
+    public void testFindGameByIdNotFound() {
+        gameRepo.addGame(game1);
+        gameRepo.addGame(game2);
+        gameRepo.addGame(game3);
+        Games foundGame = gameRepo.findGameById(999); // Non-existing game ID
+        assertNull(foundGame, "Should return null for non-existing game ID");
+    }
+
+    // 6. Test: Adding a rating for a game by a user
+    @Test
+    public void testAddRating() {
+        gameRepo.addRating(user1, game1, 4);
+        Map<Users, Map<Games, Integer>> ratings = gameRepo.getUserGameRatings();
+        assertEquals(4, ratings.get(user1).get(game1), "Rating should be 4");
+    }
+
+    // 7. Test: Multiple users rating the same game
+    @Test
+    public void testMultipleUsersRateSameGame() {
+        gameRepo.addRating(user1, game1, 5);
+        gameRepo.addRating(user2, game1, 3);
+        Map<Users, Map<Games, Integer>> ratings = gameRepo.getUserGameRatings();
+        assertEquals(5, ratings.get(user1).get(game1), "User 1's rating should be 5");
+        assertEquals(3, ratings.get(user2).get(game1), "User 2's rating should be 3");
+    }
+
+    // 8. Test: Retrieving all ratings given by a user
+    @Test
+    public void testGetUserRatings() {
+        gameRepo.addRating(user1, game1, 5);
+        gameRepo.addRating(user1, game2, 2);
+        Map<Users, Map<Games, Integer>> ratings = gameRepo.getUserGameRatings();
+        assertEquals(2, ratings.get(user1).size(), "User 1 should have 2 ratings");
+    }
+
+    // 9. Test: Checking if a user without ratings is correctly handled
+    @Test
+    public void testUserWithoutRatings() {
+        Map<Users, Map<Games, Integer>> ratings = gameRepo.getUserGameRatings();
+        assertFalse(ratings.containsKey(user2), "User 2 should not have any ratings");
+    }
+
+    // 10. Test: Finding a user with a negative ID
+    @Test
+    public void testFindUserByNegativeId() {
+        gameRepo.addUser(user1);
+        gameRepo.addUser(user2);
+        Users foundUser = gameRepo.findUserById(-1); // Invalid ID
+        assertNull(foundUser, "Should return null for negative user ID");
     }
 
 }
